@@ -117,11 +117,14 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
 
   let totalIncome = 0;
   let totalExpense = 0;
+  let totalSaving = 0;
   transactions.forEach((tx) => {
     if (tx.type === 'INCOME') { totalIncome += tx.amount; }
+    else if (tx.type === 'SAVING') { totalSaving += tx.amount; }
     else { totalExpense += tx.amount; }
   });
-  const balance = totalIncome - totalExpense;
+  const balance = totalIncome - totalExpense - totalSaving;
+  const patrimonioTotal = totalIncome - totalExpense;
   const isBudgetActive = monthlyLimit > 0;
   const spentRatio = isBudgetActive ? totalExpense / monthlyLimit : 0;
   const progressPct = isBudgetActive ? Math.min(Math.round(spentRatio * 100), 100) : 0;
@@ -220,7 +223,7 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
 
       {/* Card de BALANCE TOTAL y PRESUPUESTO OPCIONAL */}
       <View style={styles.balanceCard}>
-        <Text style={styles.balanceHeaderLabel}>BALANCE TOTAL</Text>
+        <Text style={styles.balanceHeaderLabel}>BALANCE LIBRE DISPONIBLE</Text>
         <Text style={[styles.balanceAmountText, balance < 0 ? styles.negativeText : styles.positiveText]}>
           {currencySymbol}{balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
         </Text>
@@ -232,6 +235,23 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
           <Text style={styles.breakdownBullet}>•</Text>
           <Text style={styles.expenseBreakdownText}>
             - {currencySymbol}{totalExpense.toLocaleString('es-ES')} Gastos
+          </Text>
+        </View>
+
+        {/* Fila Adicional Dedicada: Ahorros */}
+        <View style={styles.savingBreakdownRow}>
+          <Text style={styles.savingBreakdownText}>
+            🐷 + {currencySymbol}{totalSaving.toLocaleString('es-ES', { minimumFractionDigits: 2 })} Ahorrado
+          </Text>
+        </View>
+
+        {/* Fila Adicional: Patrimonio Total (Disponible + Ahorros) */}
+        <View style={styles.patrimonioBreakdownRow}>
+          <Text style={styles.patrimonioBreakdownLabel}>
+            💎 Patrimonio Total (Disponible + Ahorro):
+          </Text>
+          <Text style={styles.patrimonioBreakdownValue}>
+            {currencySymbol}{patrimonioTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
           </Text>
         </View>
 
@@ -388,11 +408,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 2,
-    marginBottom: 12,
+    marginBottom: 6,
   },
   incomeBreakdownText: { color: '#10B981', fontSize: 13, fontWeight: '700' },
   breakdownBullet:     { color: '#64748B', marginHorizontal: 8 },
   expenseBreakdownText:{ color: '#F43F5E', fontSize: 13, fontWeight: '700' },
+  savingBreakdownRow: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderColor: '#38BDF8',
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  savingBreakdownText: {
+    color: '#38BDF8',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  patrimonioBreakdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  patrimonioBreakdownLabel: {
+    color: '#CBD5E1',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  patrimonioBreakdownValue: {
+    color: '#38BDF8',
+    fontSize: 13,
+    fontWeight: '800',
+  },
   budgetProgressSection: {
     width: '100%',
     alignItems: 'center',
