@@ -10,6 +10,7 @@ import {
   ScrollView,
   Platform,
   useWindowDimensions,
+  Modal,
 } from 'react-native';
 import { Transaction } from '../types';
 
@@ -128,6 +129,8 @@ export const MichiClanStreak: React.FC<MichiClanStreakProps> = ({
   // Filter unlocked characters
   const unlockedCount = CLAN_CHARACTERS.filter((c) => streak >= c.minStreak).length;
 
+  const [showInfoModal, setShowInfoModal] = useState(false);
+
   // Animations for floating characters
   const floatAnim1 = useRef(new Animated.Value(0)).current;
   const floatAnim2 = useRef(new Animated.Value(0)).current;
@@ -166,12 +169,15 @@ export const MichiClanStreak: React.FC<MichiClanStreakProps> = ({
       <View style={styles.streakHeaderCard}>
         <View style={styles.streakBadgeContainer}>
           <Text style={styles.fireEmoji}>🔥</Text>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.streakTitle}>Racha Activa: {streak} {streak === 1 ? 'Día' : 'Días'}</Text>
             <Text style={styles.streakSubText}>
-              {unlockedCount} de {CLAN_CHARACTERS.length} Michis desbloqueados en tu escuadrón
+              {unlockedCount} de {CLAN_CHARACTERS.length} Michis desbloqueados
             </Text>
           </View>
+          <TouchableOpacity style={styles.infoModalBtn} onPress={() => setShowInfoModal(true)}>
+            <Text style={styles.infoModalBtnText}>ℹ️ Guía</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Progress Bar towards next character unlock */}
@@ -273,6 +279,62 @@ export const MichiClanStreak: React.FC<MichiClanStreakProps> = ({
         <Text style={styles.detailRole}>Rol: {activeCharacter.role}</Text>
         <Text style={styles.detailQuote}>"{activeCharacter.quote}"</Text>
       </View>
+
+      {/* Info Popup Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showInfoModal}
+        onRequestClose={() => setShowInfoModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>🏆 Guía de Escuadrón & Racha</Text>
+              <TouchableOpacity onPress={() => setShowInfoModal(false)} style={styles.modalCloseIconBtn}>
+                <Text style={styles.modalCloseIconText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionHeader}>🔥 Contador de Racha & Barra de Progreso</Text>
+                <Text style={styles.modalSectionText}>
+                  Muestra tu racha activa actual y calcula los días restantes exactos que te faltan para subir de nivel y desbloquear el siguiente personaje para tu escuadrón.
+                </Text>
+              </View>
+
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionHeader}>💨 Animaciones de Flotación Independientes</Text>
+                <Text style={styles.modalSectionText}>
+                  Cada personaje que desbloqueas cobra vida flotando con su propia animación y ritmo en pantalla dentro de la escena principal.
+                </Text>
+              </View>
+
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionHeader}>🔒 Siluetas e Inspección Interactiva</Text>
+                <Text style={styles.modalSectionText}>
+                  Puedes tocar cualquier personaje en la cuadrícula (ya sea desbloqueado o bloqueado con candado) para desplegar su ficha técnica, rol oficial y frase motivacional.
+                </Text>
+              </View>
+
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionHeader}>🐾 Escala de Desbloqueo por Días de Racha:</Text>
+                {CLAN_CHARACTERS.map((char) => (
+                  <View key={char.id} style={styles.modalLevelRow}>
+                    <Text style={[styles.modalLevelBadge, { color: char.color }]}>{char.badge}</Text>
+                    <Text style={styles.modalLevelName}>{char.name} ({char.role})</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowInfoModal(false)}>
+              <Text style={styles.modalCloseBtnText}>¡Entendido! 🐾</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -468,5 +530,101 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontStyle: 'italic',
     marginTop: 4,
+  },
+  infoModalBtn: {
+    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+    borderColor: '#38BDF8',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  infoModalBtnText: {
+    color: '#38BDF8',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 480,
+    backgroundColor: '#1E293B',
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    paddingBottom: 12,
+  },
+  modalTitle: {
+    color: '#F8FAFC',
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  modalCloseIconBtn: {
+    padding: 6,
+  },
+  modalCloseIconText: {
+    color: '#94A3B8',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalSection: {
+    marginBottom: 14,
+  },
+  modalSectionHeader: {
+    color: '#38BDF8',
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  modalSectionText: {
+    color: '#CBD5E1',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  modalLevelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  modalLevelBadge: {
+    fontSize: 11,
+    fontWeight: '700',
+    width: 80,
+  },
+  modalLevelName: {
+    color: '#F8FAFC',
+    fontSize: 12,
+    flex: 1,
+  },
+  modalCloseBtn: {
+    backgroundColor: '#38BDF8',
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  modalCloseBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
