@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { fetchTransactions, fetchBudget, saveBudget } from '../api';
 import { ReactiveCatMascot } from '../components/ReactiveCatMascot';
-import { MichiClanStreak } from '../components/MichiClanStreak';
+import { MichiClanStreak, calculateDailyStreak } from '../components/MichiClanStreak';
 import { Transaction } from '../types';
 
 interface MichiPreviewScreenProps {
@@ -43,6 +43,26 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
   const glowInnerOpac = useRef(new Animated.Value(0.07)).current;
   const sparkle1      = useRef(new Animated.Value(0)).current;
   const sparkle2      = useRef(new Animated.Value(0)).current;
+
+  // Streak button pulse animation (inviting parpadeo)
+  const streakBtnScale = useRef(new Animated.Value(1.0)).current;
+  const streakBtnOpac  = useRef(new Animated.Value(1.0)).current;
+
+  useEffect(() => {
+    // Parpadeo / Pulso constante del botón de racha
+    Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(streakBtnScale, { toValue: 1.08, duration: 750, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(streakBtnOpac, { toValue: 0.75, duration: 750, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(streakBtnScale, { toValue: 1.0, duration: 750, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(streakBtnOpac, { toValue: 1.0, duration: 750, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        ]),
+      ])
+    ).start();
+  }, []);
 
   useEffect(() => {
     fetchTransactions().then(setTransactions);
@@ -125,13 +145,22 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
   const spin1 = sparkle1.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   const spin2 = sparkle2.interpolate({ inputRange: [0, 1], outputRange: ['360deg', '0deg'] });
 
+  const streak = calculateDailyStreak(transactions);
+
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
-      {/* Botón superior derecho para abrir Escuadrón & Racha */}
+      {/* Botón superior derecho: Fueguito + Días de Racha con efecto parpadeo / pulso */}
       <View style={styles.topRightBar}>
-        <TouchableOpacity style={styles.squadLauncherBtn} onPress={() => setShowSquadModal(true)}>
-          <Text style={styles.squadLauncherText}>🔥 Escuadrón & Racha</Text>
-        </TouchableOpacity>
+        <Animated.View
+          style={{
+            transform: [{ scale: streakBtnScale }],
+            opacity: streakBtnOpac,
+          }}
+        >
+          <TouchableOpacity style={styles.squadLauncherBtn} onPress={() => setShowSquadModal(true)} activeOpacity={0.7}>
+            <Text style={styles.squadLauncherText}>🔥 {streak} {streak === 1 ? 'Día' : 'Días'}</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
 
       {/* Cat + Glow effects container */}
@@ -461,22 +490,25 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   squadLauncherBtn: {
-    backgroundColor: 'rgba(56, 189, 248, 0.2)',
-    borderColor: '#38BDF8',
-    borderWidth: 1,
-    paddingHorizontal: 14,
+    backgroundColor: 'rgba(245, 158, 11, 0.22)',
+    borderColor: '#F59E0B',
+    borderWidth: 1.5,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    shadowColor: '#38BDF8',
+    shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
   },
   squadLauncherText: {
-    color: '#38BDF8',
-    fontSize: 13,
-    fontWeight: '800',
+    color: '#F59E0B',
+    fontSize: 14,
+    fontWeight: '900',
     letterSpacing: 0.5,
+    textShadowColor: 'rgba(245, 158, 11, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   modalOverlay: {
     flex: 1,
