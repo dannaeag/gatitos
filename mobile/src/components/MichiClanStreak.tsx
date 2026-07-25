@@ -114,17 +114,52 @@ export function calculateDailyStreak(transactions: Transaction[]): number {
 
 interface MichiClanStreakProps {
   transactions: Transaction[];
+  currencySymbol?: string;
   selectedCatId?: string;
   onSelectCat?: (cat: ClanCharacter) => void;
 }
 
 export const MichiClanStreak: React.FC<MichiClanStreakProps> = ({
   transactions,
+  currencySymbol = '$',
   selectedCatId,
   onSelectCat,
 }) => {
   const streak = calculateDailyStreak(transactions);
   const [activeTab, setActiveTab] = useState<string>(selectedCatId || 'guardian');
+
+  // Savings Calculation
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const monthNames = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+  const currentMonthName = monthNames[currentMonth];
+
+  let totalIncomeAllTime = 0;
+  let totalExpenseAllTime = 0;
+  let currentMonthIncome = 0;
+  let currentMonthExpense = 0;
+
+  transactions.forEach((tx) => {
+    const txDate = new Date(tx.date);
+    if (tx.type === 'INCOME') {
+      totalIncomeAllTime += tx.amount;
+      if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
+        currentMonthIncome += tx.amount;
+      }
+    } else {
+      totalExpenseAllTime += tx.amount;
+      if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
+        currentMonthExpense += tx.amount;
+      }
+    }
+  });
+
+  const totalSaved = totalIncomeAllTime - totalExpenseAllTime;
+  const currentMonthSaved = currentMonthIncome - currentMonthExpense;
 
   // Filter unlocked characters
   const unlockedCount = CLAN_CHARACTERS.filter((c) => streak >= c.minStreak).length;
@@ -204,6 +239,35 @@ export const MichiClanStreak: React.FC<MichiClanStreakProps> = ({
             </View>
           </View>
         )}
+      </View>
+
+      {/* Detalle de Ahorro Acumulado y Ahorrado Este Mes */}
+      <View style={styles.savingsCard}>
+        <View style={styles.savingsHeaderRow}>
+          <Text style={styles.savingsHeaderIcon}>💰</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.savingsCardTitle}>Detalle de Ahorros</Text>
+            <Text style={styles.savingsCardSubText}>Rendimiento acumulado & Ahorro de {currentMonthName}</Text>
+          </View>
+        </View>
+
+        <View style={styles.savingsGrid}>
+          <View style={styles.savingsBox}>
+            <Text style={styles.savingsBoxLabel}>Ahorro Total Acumulado</Text>
+            <Text style={[styles.savingsBoxValue, totalSaved < 0 ? styles.negativeValue : styles.positiveValue]}>
+              {currencySymbol}{totalSaved.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          </View>
+
+          <View style={styles.savingsBoxDivider} />
+
+          <View style={styles.savingsBox}>
+            <Text style={styles.savingsBoxLabel}>Ahorrado en {currentMonthName}</Text>
+            <Text style={[styles.savingsBoxValue, currentMonthSaved < 0 ? styles.negativeValue : styles.monthPositiveValue]}>
+              {currentMonthSaved >= 0 ? '+' : ''}{currencySymbol}{currentMonthSaved.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          </View>
+        </View>
       </View>
 
       {/* Escuadrón Visual Showcase (Multiple Characters Floating) */}
@@ -626,5 +690,71 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
+  },
+  savingsCard: {
+    width: '100%',
+    maxWidth: 480,
+    backgroundColor: 'rgba(30, 41, 59, 0.9)',
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    marginBottom: 16,
+  },
+  savingsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  savingsHeaderIcon: {
+    fontSize: 26,
+    marginRight: 10,
+  },
+  savingsCardTitle: {
+    color: '#F8FAFC',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  savingsCardSubText: {
+    color: '#10B981',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  savingsGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+    borderRadius: 14,
+    padding: 12,
+  },
+  savingsBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  savingsBoxDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  savingsBoxLabel: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  savingsBoxValue: {
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  positiveValue: {
+    color: '#10B981',
+  },
+  monthPositiveValue: {
+    color: '#38BDF8',
+  },
+  negativeValue: {
+    color: '#F43F5E',
   },
 });

@@ -301,7 +301,7 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
             </View>
 
             <ScrollView style={{ width: '100%' }} contentContainerStyle={{ paddingBottom: 20 }}>
-              <MichiClanStreak transactions={transactions} />
+              <MichiClanStreak transactions={transactions} currencySymbol={currencySymbol} />
             </ScrollView>
 
             <TouchableOpacity style={styles.modalFooterCloseBtn} onPress={() => setShowSquadModal(false)}>
