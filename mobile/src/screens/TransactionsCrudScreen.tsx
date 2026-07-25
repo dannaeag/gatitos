@@ -79,14 +79,18 @@ export const TransactionsCrudScreen: React.FC<TransactionsCrudScreenProps> = ({
   // Calculate quick totals
   let totalIncome = 0;
   let totalExpense = 0;
+  let totalSaving = 0;
   transactions.forEach((tx) => {
     if (tx.type === 'INCOME') {
       totalIncome += tx.amount;
+    } else if (tx.type === 'SAVING') {
+      totalSaving += tx.amount;
     } else {
       totalExpense += tx.amount;
     }
   });
-  const balance = totalIncome - totalExpense;
+  const balance = totalIncome - totalExpense - totalSaving;
+  const patrimonioTotal = totalIncome - totalExpense;
 
   // ADHD Gamification Metrics
   const streakDays = Math.max(3, transactions.length > 0 ? 5 : 1);
@@ -158,7 +162,7 @@ export const TransactionsCrudScreen: React.FC<TransactionsCrudScreenProps> = ({
           {/* Summary Chips Row */}
           <View style={styles.summaryRow}>
             <View style={styles.summaryChip}>
-              <Text style={styles.summaryChipLabel}>Balance</Text>
+              <Text style={styles.summaryChipLabel}>Disponible</Text>
               <Text style={[styles.summaryChipValue, balance < 0 ? styles.negativeText : styles.positiveText]}>
                 {currencySymbol}{balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
               </Text>
@@ -183,6 +187,24 @@ export const TransactionsCrudScreen: React.FC<TransactionsCrudScreenProps> = ({
                 -{currencySymbol}{totalExpense.toLocaleString('es-ES')}
               </Text>
             </View>
+
+            <View style={styles.summaryChip}>
+              <View style={styles.chipHeader}>
+                <Text style={{ fontSize: 12 }}>🐷</Text>
+                <Text style={[styles.summaryChipLabel, { marginLeft: 4 }]}>Ahorros</Text>
+              </View>
+              <Text style={styles.savingText}>
+                +{currencySymbol}{totalSaving.toLocaleString('es-ES')}
+              </Text>
+            </View>
+          </View>
+
+          {/* Patrimonio Total Banner Row */}
+          <View style={styles.patrimonioRowBanner}>
+            <Text style={styles.patrimonioRowLabel}>💎 Patrimonio Total (Disponible + Ahorro):</Text>
+            <Text style={styles.patrimonioRowValue}>
+              {currencySymbol}{patrimonioTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+            </Text>
           </View>
 
           {/* Search & Type Filter Bar */}
@@ -223,6 +245,15 @@ export const TransactionsCrudScreen: React.FC<TransactionsCrudScreenProps> = ({
               >
                 <Text style={[styles.filterChipText, selectedType === 'INCOME' && styles.activeChipText]}>
                   💰 Ingresos
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.filterChip, selectedType === 'SAVING' && styles.activeSavingChip]}
+                onPress={() => setSelectedType('SAVING')}
+              >
+                <Text style={[styles.filterChipText, selectedType === 'SAVING' && styles.activeChipText]}>
+                  🐷 Ahorros
                 </Text>
               </TouchableOpacity>
             </View>
@@ -384,6 +415,34 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 2,
   },
+  savingText: {
+    color: '#38BDF8',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  patrimonioRowBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#38BDF840',
+  },
+  patrimonioRowLabel: {
+    color: '#CBD5E1',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  patrimonioRowValue: {
+    color: '#38BDF8',
+    fontSize: 14,
+    fontWeight: '800',
+  },
   filterSection: {
     marginBottom: 16,
   },
@@ -426,6 +485,10 @@ const styles = StyleSheet.create({
   activeIncomeChip: {
     backgroundColor: '#10B981',
     borderColor: '#10B981',
+  },
+  activeSavingChip: {
+    backgroundColor: '#38BDF8',
+    borderColor: '#38BDF8',
   },
   filterChipText: {
     color: '#94A3B8',
