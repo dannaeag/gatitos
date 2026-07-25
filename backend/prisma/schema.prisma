@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  EXPENSE
+  INCOME
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  OTHER
+}
+
+model Category {
+  id           String          @id @default(uuid())
+  name         String
+  icon         String          // Icon name e.g. "shopping-bag", "utensils", "home"
+  color        String          // Hex color code e.g. "#FF5733"
+  type         TransactionType @default(EXPENSE)
+  isDefault    Boolean         @default(false)
+  transactions Transaction[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Transaction {
+  id            String          @id @default(uuid())
+  title         String
+  amount        Float
+  date          DateTime        @default(now())
+  type          TransactionType @default(EXPENSE)
+  paymentMethod PaymentMethod   @default(CARD)
+  notes         String?
+  categoryId    String
+  category      Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([date])
+  @@index([categoryId])
+}
+
+model Budget {
+  id           String   @id @default(uuid())
+  month        Int      // 1-12
+  year         Int      // e.g. 2026
+  monthlyLimit Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([month, year])
+}
