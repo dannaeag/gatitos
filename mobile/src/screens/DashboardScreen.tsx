@@ -91,7 +91,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
       {/* Hero Summary Card */}
       <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>Balance del Mes</Text>
+        <Text style={styles.summaryLabel}>Balance Disponible del Mes</Text>
         <Text style={[styles.balanceValue, (summary?.balance || 0) < 0 ? styles.negativeText : styles.positiveText]}>
           {currencySymbol}
           {(summary?.balance || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -123,7 +123,25 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               </Text>
             </View>
           </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.statBox}>
+            <View style={[styles.iconCircle, { backgroundColor: '#38BDF820' }]}>
+              <Text style={{ fontSize: 14 }}>🐷</Text>
+            </View>
+            <View>
+              <Text style={styles.statLabel}>Ahorros</Text>
+              <Text style={styles.statValueSaving}>
+                {currencySymbol}{(summary?.totalSaving || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+              </Text>
+            </View>
+          </View>
         </View>
+
+        <Text style={styles.savingExplanationNote}>
+          ℹ️ El Ahorro se separa de lo disponible como un traspaso del ingreso (no es un gasto).
+        </Text>
       </View>
 
       {/* Monthly Budget Progress Card */}
@@ -307,13 +325,25 @@ const styles = StyleSheet.create({
   },
   statValueIncome: {
     color: '#10B981',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
   statValueExpense: {
     color: '#F43F5E',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
+  },
+  statValueSaving: {
+    color: '#38BDF8',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  savingExplanationNote: {
+    color: '#64748B',
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 10,
+    textAlign: 'center',
   },
   divider: {
     width: 1,

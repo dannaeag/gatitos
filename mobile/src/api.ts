@@ -217,3 +217,65 @@ export async function saveBudget(month: number, year: number, limit: number): Pr
   }
   return true;
 }
+
+export async function fetchSummary(month?: number, year?: number): Promise<MonthlySummary> {
+  const m = month || new Date().getMonth() + 1;
+  const y = year || new Date().getFullYear();
+  try {
+    const res = await fetch(`${API_BASE_URL}/transactions/summary?month=${m}&year=${y}`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.log('Using local fallback for fetchSummary');
+  }
+
+  // Local fallback calculation
+  const txs = LOCAL_TRANSACTIONS.filter((tx) => {
+    const d = new Date(tx.date);
+    return d.getMonth() + 1 === m && d.getFullYear() === y;
+  });
+
+  let totalIncome = 0;
+  let totalExpense = 0;
+  let totalSaving = 0;
+  const catMap: Record<string, { category: Category; total: number }> = {};
+
+  txs.forEach((tx) => {
+    if (tx.type === 'INCOME') {
+      totalIncome += tx.amount;
+    } else if (tx.type === 'SAVING') {
+      totalSaving += tx.amount;
+    } else {
+      totalExpense += tx.amount;
+      if (!catMap[tx.categoryId]) {
+        catMap[tx.categoryId] = { category: tx.category, total: 0 };
+      }
+      catMap[tx.categoryId].total += tx.amount;
+    }
+  });
+
+  const categoryBreakdown = Object.values(catMap).map(({ category, total }) => ({
+    categoryId: category.id,
+    categoryName: category.name,
+    color: category.color,
+    icon: category.icon,
+    total,
+    percentage: totalExpense > 0 ? (total / totalExpense) * 100 : 0,
+  }));
+
+  return {
+    month: m,
+    year: y,
+    totalIncome,
+    totalExpense,
+    totalSaving,
+    balance: totalIncome - totalExpense - totalSaving,
+    monthlyLimit: LOCAL_BUDGET_LIMIT,
+    budgetProgressPercentage: LOCAL_BUDGET_LIMIT > 0 ? (totalExpense / LOCAL_BUDGET_LIMIT) * 100 : 0,
+    categoryBreakdown,
+    transactionCount: txs.length,
+  };
+}
