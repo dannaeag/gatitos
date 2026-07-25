@@ -18,10 +18,19 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
   onDelete,
 }) => {
   const isIncome = transaction.type === 'INCOME';
+  const isSaving = transaction.type === 'SAVING';
   const formattedDate = new Date(transaction.date).toLocaleDateString('es-ES', {
     day: '2-digit',
     month: 'short',
   });
+
+  const freqLabels: Record<string, string> = {
+    WEEKLY: 'Semanal',
+    MONTHLY: 'Mensual',
+    QUARTERLY: 'Trimestral',
+    SEMIANNUAL: 'Semestral',
+    ANNUAL: 'Anual',
+  };
 
   return (
     <View style={styles.card}>
@@ -32,7 +41,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
             color={transaction.category?.color || '#64748B'}
             size={18}
           />
-          <Text style={styles.catBadge}>{isIncome ? '🐱' : '🐾'}</Text>
+          <Text style={styles.catBadge}>{isSaving ? '🐷' : isIncome ? '🐱' : '🐾'}</Text>
         </View>
 
         <View style={styles.details}>
@@ -46,6 +55,14 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
             <Text style={styles.dot}>•</Text>
             <Text style={styles.date}>{formattedDate}</Text>
           </View>
+
+          {transaction.isRecurring && (
+            <Text style={styles.recurringTag}>
+              🔁 Recurrente ({freqLabels[transaction.recurrenceFrequency || 'MONTHLY'] || 'Mensual'})
+              {transaction.billingDate ? ` • Cobro: ${transaction.billingDate}` : ''}
+            </Text>
+          )}
+
           {transaction.notes ? (
             <Text style={styles.notesText} numberOfLines={1}>
               💬 {transaction.notes}
@@ -55,8 +72,8 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
       </View>
 
       <View style={styles.rightSection}>
-        <Text style={[styles.amount, isIncome ? styles.incomeText : styles.expenseText]}>
-          {isIncome ? '+' : '-'}{currencySymbol}
+        <Text style={[styles.amount, isSaving ? styles.savingText : isIncome ? styles.incomeText : styles.expenseText]}>
+          {isSaving ? '🐷 +' : isIncome ? '+' : '-'}{currencySymbol}
           {transaction.amount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </Text>
 
@@ -156,8 +173,22 @@ const styles = StyleSheet.create({
   incomeText: {
     color: '#22C55E',
   },
+  savingText: {
+    color: '#38BDF8',
+  },
   expenseText: {
     color: '#F43F5E',
+  },
+  recurringTag: {
+    color: '#38BDF8',
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 3,
+    backgroundColor: '#38BDF815',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
   },
   actionsRow: {
     flexDirection: 'row',

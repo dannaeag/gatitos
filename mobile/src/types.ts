@@ -1,5 +1,6 @@
-export type TransactionType = 'EXPENSE' | 'INCOME';
+export type TransactionType = 'EXPENSE' | 'INCOME' | 'SAVING';
 export type PaymentMethod = 'CASH' | 'CARD' | 'TRANSFER' | 'OTHER';
+export type RecurrenceFrequency = 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL';
 
 export interface Category {
   id: string;
@@ -20,6 +21,9 @@ export interface Transaction {
   notes?: string;
   categoryId: string;
   category: Category;
+  isRecurring?: boolean;
+  recurrenceFrequency?: RecurrenceFrequency;
+  billingDate?: string;
   createdAt?: string;
 }
 
@@ -37,6 +41,7 @@ export interface MonthlySummary {
   year: number;
   totalIncome: number;
   totalExpense: number;
+  totalSaving?: number;
   balance: number;
   monthlyLimit: number | null;
   budgetProgressPercentage: number;

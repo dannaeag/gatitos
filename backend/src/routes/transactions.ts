@@ -69,11 +69,14 @@ transactionsRouter.get('/summary', async (req: Request, res: Response) => {
 
     let totalIncome = 0;
     let totalExpense = 0;
+    let totalSaving = 0;
     const categoryTotalsMap: Record<string, { category: any; total: number }> = {};
 
     transactions.forEach((tx) => {
       if (tx.type === 'INCOME') {
         totalIncome += tx.amount;
+      } else if (tx.type === 'SAVING') {
+        totalSaving += tx.amount;
       } else {
         totalExpense += tx.amount;
         if (!categoryTotalsMap[tx.categoryId]) {
@@ -110,6 +113,7 @@ transactionsRouter.get('/summary', async (req: Request, res: Response) => {
       year,
       totalIncome,
       totalExpense,
+      totalSaving,
       balance: totalIncome - totalExpense,
       monthlyLimit: budget ? budget.monthlyLimit : null,
       budgetProgressPercentage: budget && budget.monthlyLimit > 0 ? (totalExpense / budget.monthlyLimit) * 100 : 0,
@@ -125,7 +129,7 @@ transactionsRouter.get('/summary', async (req: Request, res: Response) => {
 // POST Create new transaction
 transactionsRouter.post('/', async (req: Request, res: Response) => {
   try {
-    const { title, amount, categoryId, date, type, paymentMethod, notes } = req.body;
+    const { title, amount, categoryId, date, type, paymentMethod, notes, isRecurring, recurrenceFrequency, billingDate } = req.body;
 
     if (!title || amount === undefined || !categoryId) {
       return res.status(400).json({ error: 'Title, amount, and categoryId are required' });
@@ -140,6 +144,9 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
         type: type || 'EXPENSE',
         paymentMethod: paymentMethod || 'CARD',
         notes: notes || null,
+        isRecurring: !!isRecurring,
+        recurrenceFrequency: recurrenceFrequency || null,
+        billingDate: billingDate ? new Date(billingDate) : null,
       },
       include: {
         category: true,
@@ -157,7 +164,7 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
 transactionsRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { title, amount, categoryId, date, type, paymentMethod, notes } = req.body;
+    const { title, amount, categoryId, date, type, paymentMethod, notes, isRecurring, recurrenceFrequency, billingDate } = req.body;
 
     const transaction = await prisma.transaction.update({
       where: { id },
@@ -169,6 +176,9 @@ transactionsRouter.put('/:id', async (req: Request, res: Response) => {
         type,
         paymentMethod,
         notes,
+        isRecurring,
+        recurrenceFrequency,
+        billingDate: billingDate ? new Date(billingDate) : undefined,
       },
       include: {
         category: true,

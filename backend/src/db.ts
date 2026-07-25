@@ -22,6 +22,10 @@ export async function seedDefaultCategories() {
     { name: 'Ventas y Servicios', icon: 'trending-up', color: '#10B981', type: 'INCOME' as const, isDefault: true },
     { name: 'Inversiones', icon: 'pie-chart', color: '#0EA5E9', type: 'INCOME' as const, isDefault: true },
     { name: 'Otros Ingresos', icon: 'plus-circle', color: '#84CC16', type: 'INCOME' as const, isDefault: true },
+
+    { name: 'Fondo de Emergencia', icon: 'shield', color: '#10B981', type: 'SAVING' as const, isDefault: true },
+    { name: 'Inversión y Futuro', icon: 'trending-up', color: '#0EA5E9', type: 'SAVING' as const, isDefault: true },
+    { name: 'Ahorro Michi Cerdito', icon: 'award', color: '#EC4899', type: 'SAVING' as const, isDefault: true },
   ];
 
   await prisma.category.createMany({

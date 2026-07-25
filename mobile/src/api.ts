@@ -29,6 +29,9 @@ const LOCAL_CATEGORIES: Category[] = [
   { id: 'cat-8', name: 'Suscripciones', icon: 'tv', color: '#6366F1', type: 'EXPENSE' },
   { id: 'cat-9', name: 'Salario / Sueldo', icon: 'briefcase', color: '#22C55E', type: 'INCOME' },
   { id: 'cat-10', name: 'Ventas & Servicios', icon: 'trending-up', color: '#10B981', type: 'INCOME' },
+  { id: 'cat-11', name: 'Fondo de Emergencia', icon: 'shield', color: '#10B981', type: 'SAVING' },
+  { id: 'cat-12', name: 'Inversión & Futuro', icon: 'trending-up', color: '#0EA5E9', type: 'SAVING' },
+  { id: 'cat-13', name: 'Ahorro Michi Cerdito', icon: 'award', color: '#EC4899', type: 'SAVING' },
 ];
 
 let LOCAL_TRANSACTIONS: Transaction[] = [];
@@ -75,6 +78,9 @@ export async function createTransaction(data: {
   type: TransactionType;
   paymentMethod: PaymentMethod;
   notes?: string;
+  isRecurring?: boolean;
+  recurrenceFrequency?: any;
+  billingDate?: string;
 }): Promise<Transaction> {
   try {
     const res = await fetch(`${API_BASE_URL}/transactions`, {
@@ -101,6 +107,9 @@ export async function createTransaction(data: {
     notes: data.notes,
     categoryId: data.categoryId,
     category,
+    isRecurring: data.isRecurring,
+    recurrenceFrequency: data.recurrenceFrequency,
+    billingDate: data.billingDate,
   };
 
   LOCAL_TRANSACTIONS.unshift(newTx);
@@ -117,6 +126,9 @@ export async function updateTransaction(
     type: TransactionType;
     paymentMethod: PaymentMethod;
     notes?: string;
+    isRecurring?: boolean;
+    recurrenceFrequency?: any;
+    billingDate?: string;
   }
 ): Promise<Transaction> {
   try {
@@ -146,6 +158,9 @@ export async function updateTransaction(
       paymentMethod: data.paymentMethod,
       notes: data.notes,
       date: data.date || LOCAL_TRANSACTIONS[index].date,
+      isRecurring: data.isRecurring,
+      recurrenceFrequency: data.recurrenceFrequency,
+      billingDate: data.billingDate,
     };
     return LOCAL_TRANSACTIONS[index];
   }

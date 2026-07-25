@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { Category, Transaction, TransactionType, PaymentMethod } from '../types';
+import { Category, Transaction, TransactionType, PaymentMethod, RecurrenceFrequency } from '../types';
 import { fetchCategories, createTransaction, updateTransaction } from '../api';
 import { CategoryIcon } from '../components/CategoryIcon';
 import { Check, CreditCard, Banknote, ArrowRightLeft } from '../components/Icons';
@@ -39,6 +39,17 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // Recurrencia & Fecha de Facturación
+  const [isRecurring, setIsRecurring] = useState<boolean>(editingTransaction?.isRecurring || false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<RecurrenceFrequency>(
+    editingTransaction?.recurrenceFrequency || 'MONTHLY'
+  );
+  const [billingDate, setBillingDate] = useState<string>(
+    editingTransaction?.billingDate
+      ? editingTransaction.billingDate.split('T')[0]
+      : new Date().toISOString().split('T')[0]
+  );
+
   useEffect(() => {
     fetchCategories().then((cats) => {
       setCategories(cats);
@@ -59,6 +70,11 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
       setSelectedCategoryId(editingTransaction.categoryId);
       setPaymentMethod(editingTransaction.paymentMethod);
       setNotes(editingTransaction.notes || '');
+      setIsRecurring(!!editingTransaction.isRecurring);
+      setRecurrenceFrequency(editingTransaction.recurrenceFrequency || 'MONTHLY');
+      if (editingTransaction.billingDate) {
+        setBillingDate(editingTransaction.billingDate.split('T')[0]);
+      }
     }
   }, [editingTransaction]);
 
@@ -102,6 +118,9 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
         type,
         paymentMethod,
         notes: notes.trim() || undefined,
+        isRecurring,
+        recurrenceFrequency: isRecurring ? recurrenceFrequency : undefined,
+        billingDate: isRecurring ? billingDate : undefined,
       });
     } else {
       await createTransaction({
@@ -111,6 +130,9 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
         type,
         paymentMethod,
         notes: notes.trim() || undefined,
+        isRecurring,
+        recurrenceFrequency: isRecurring ? recurrenceFrequency : undefined,
+        billingDate: isRecurring ? billingDate : undefined,
       });
     }
 
@@ -139,14 +161,14 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
         </View>
       )}
 
-      {/* Type Toggle: Gasto vs Ingreso */}
+      {/* Type Toggle: Gasto vs Ingreso vs Ahorro */}
       <View style={styles.typeToggle}>
         <TouchableOpacity
           style={[styles.typeBtn, type === 'EXPENSE' && styles.activeExpenseBtn]}
           onPress={() => handleTypeChange('EXPENSE')}
         >
           <Text style={[styles.typeText, type === 'EXPENSE' && styles.activeTypeText]}>
-            💸 Gasto Gatuno
+            💸 Gasto
           </Text>
         </TouchableOpacity>
 
@@ -155,7 +177,16 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
           onPress={() => handleTypeChange('INCOME')}
         >
           <Text style={[styles.typeText, type === 'INCOME' && styles.activeTypeText]}>
-            💰 Ingreso Michi
+            💰 Ingreso
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.typeBtn, type === 'SAVING' && styles.activeSavingBtn]}
+          onPress={() => handleTypeChange('SAVING')}
+        >
+          <Text style={[styles.typeText, type === 'SAVING' && styles.activeTypeText]}>
+            🐷 Ahorro
           </Text>
         </TouchableOpacity>
       </View>
@@ -178,7 +209,7 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
         <Text style={styles.label}>Descripción / Título</Text>
         <TextInput
           style={styles.textInput}
-          placeholder="Ej: Comida de Gato, Mercado, Sueldo..."
+          placeholder="Ej: Comida de Gato, Mercado, Fondo de Emergencia..."
           placeholderTextColor="#64748B"
           value={title}
           onChangeText={setTitle}
@@ -244,6 +275,66 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Pago / Registro Recurrente (Activables) */}
+      <View style={styles.inputGroup}>
+        <TouchableOpacity
+          style={[styles.recurringToggleRow, isRecurring && styles.activeRecurringToggleRow]}
+          onPress={() => setIsRecurring(!isRecurring)}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.recurringToggleTitle}>🔁 Pago / Registro Recurrente</Text>
+            <Text style={styles.recurringToggleSubText}>
+              Activa esta opción para gastos periódicos, suscripciones o metas recurrentes.
+            </Text>
+          </View>
+          <View style={[styles.toggleCheckbox, isRecurring && styles.toggleCheckboxChecked]}>
+            {isRecurring && <Check size={14} color="#FFFFFF" />}
+          </View>
+        </TouchableOpacity>
+
+        {isRecurring && (
+          <View style={styles.recurringConfigCard}>
+            <Text style={styles.label}>Frecuencia de Repetición</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.freqScroll}>
+              {[
+                { id: 'WEEKLY', label: '🗓️ Semanal' },
+                { id: 'MONTHLY', label: '📅 Mensual' },
+                { id: 'QUARTERLY', label: '📊 Trimestral' },
+                { id: 'SEMIANNUAL', label: '📈 Semestral' },
+                { id: 'ANNUAL', label: '👑 Anual' },
+              ].map((freq) => (
+                <TouchableOpacity
+                  key={freq.id}
+                  style={[
+                    styles.freqBtn,
+                    recurrenceFrequency === freq.id && styles.activeFreqBtn,
+                  ]}
+                  onPress={() => setRecurrenceFrequency(freq.id as RecurrenceFrequency)}
+                >
+                  <Text
+                    style={[
+                      styles.freqText,
+                      recurrenceFrequency === freq.id && styles.activeFreqText,
+                    ]}
+                  >
+                    {freq.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={[styles.label, { marginTop: 12 }]}>Fecha de Facturación / Próximo Cobro</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="YYYY-MM-DD (ej: 2026-08-05)"
+              placeholderTextColor="#64748B"
+              value={billingDate}
+              onChangeText={setBillingDate}
+            />
+          </View>
+        )}
       </View>
 
       {/* Notes Input */}
@@ -335,9 +426,12 @@ const styles = StyleSheet.create({
   activeIncomeBtn: {
     backgroundColor: '#10B981',
   },
+  activeSavingBtn: {
+    backgroundColor: '#38BDF8',
+  },
   typeText: {
     color: '#94A3B8',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   activeTypeText: {
@@ -434,6 +528,77 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   activeMethodText: {
+    color: '#38BDF8',
+    fontWeight: '700',
+  },
+  recurringToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E293B',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  activeRecurringToggleRow: {
+    borderColor: '#38BDF8',
+    backgroundColor: '#38BDF815',
+  },
+  recurringToggleTitle: {
+    color: '#F8FAFC',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  recurringToggleSubText: {
+    color: '#94A3B8',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  toggleCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#64748B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+  },
+  toggleCheckboxChecked: {
+    borderColor: '#38BDF8',
+    backgroundColor: '#38BDF8',
+  },
+  recurringConfigCard: {
+    backgroundColor: '#1E293B',
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  freqScroll: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  freqBtn: {
+    backgroundColor: '#0F172A',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  activeFreqBtn: {
+    borderColor: '#38BDF8',
+    backgroundColor: '#38BDF820',
+  },
+  freqText: {
+    color: '#94A3B8',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  activeFreqText: {
     color: '#38BDF8',
     fontWeight: '700',
   },

@@ -10,6 +10,7 @@ datasource db {
 enum TransactionType {
   EXPENSE
   INCOME
+  SAVING
 }
 
 enum PaymentMethod {
@@ -32,17 +33,20 @@ model Category {
 }
 
 model Transaction {
-  id            String          @id @default(uuid())
-  title         String
-  amount        Float
-  date          DateTime        @default(now())
-  type          TransactionType @default(EXPENSE)
-  paymentMethod PaymentMethod   @default(CARD)
-  notes         String?
-  categoryId    String
-  category      Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id                  String          @id @default(uuid())
+  title               String
+  amount              Float
+  date                DateTime        @default(now())
+  type                TransactionType @default(EXPENSE)
+  paymentMethod       PaymentMethod   @default(CARD)
+  notes               String?
+  categoryId          String
+  category            Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  isRecurring         Boolean         @default(false)
+  recurrenceFrequency String?         // "WEEKLY", "MONTHLY", "QUARTERLY", "SEMIANNUAL", "ANNUAL"
+  billingDate         DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
 
   @@index([date])
   @@index([categoryId])
