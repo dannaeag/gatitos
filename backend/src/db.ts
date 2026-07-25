@@ -3,9 +3,6 @@ import { PrismaClient } from '@prisma/client';
 export const prisma = new PrismaClient();
 
 export async function seedDefaultCategories() {
-  const count = await prisma.category.count();
-  if (count > 0) return;
-
   const defaultCategories = [
     { name: 'Alimentación y Mercado', icon: 'shopping-cart', color: '#EF4444', type: 'EXPENSE' as const, isDefault: true },
     { name: 'Restaurantes y Café', icon: 'utensils', color: '#F97316', type: 'EXPENSE' as const, isDefault: true },
@@ -28,9 +25,12 @@ export async function seedDefaultCategories() {
     { name: 'Ahorro Michi Cerdito', icon: 'award', color: '#EC4899', type: 'SAVING' as const, isDefault: true },
   ];
 
-  await prisma.category.createMany({
-    data: defaultCategories,
-  });
+  for (const cat of defaultCategories) {
+    const existing = await prisma.category.findFirst({ where: { name: cat.name } });
+    if (!existing) {
+      await prisma.category.create({ data: cat });
+    }
+  }
 
-  console.log('Default categories created successfully');
+  console.log('Default categories verified/created successfully');
 }

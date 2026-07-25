@@ -83,6 +83,11 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
     const matching = categories.find((c) => c.type === newType);
     if (matching) {
       setSelectedCategoryId(matching.id);
+    } else {
+      const fallbackCat = categories.length > 0 ? categories[0] : null;
+      if (fallbackCat) {
+        setSelectedCategoryId(fallbackCat.id);
+      }
     }
   };
 
