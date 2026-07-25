@@ -91,11 +91,32 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
       {/* Hero Summary Card */}
       <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>Balance Disponible del Mes</Text>
-        <Text style={[styles.balanceValue, (summary?.balance || 0) < 0 ? styles.negativeText : styles.positiveText]}>
-          {currencySymbol}
-          {(summary?.balance || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </Text>
+        <View style={styles.balanceHeaderRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.summaryLabel}>Balance Disponible (Libre)</Text>
+            <Text style={[styles.balanceValue, (summary?.balance || 0) < 0 ? styles.negativeText : styles.positiveText]}>
+              {currencySymbol}
+              {(summary?.balance || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          </View>
+
+          <View style={styles.totalSavingsBadge}>
+            <Text style={styles.totalSavingsBadgeLabel}>🐷 Ahorrado este Mes</Text>
+            <Text style={styles.totalSavingsBadgeValue}>
+              +{currencySymbol}
+              {(summary?.totalSaving || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          </View>
+        </View>
+
+        {/* Total Net Balance (Ingresos - Gastos) representing Total Money including Savings */}
+        <View style={styles.totalPatrimonioBanner}>
+          <Text style={styles.totalPatrimonioLabel}>💎 Balance Total (Disponible + Ahorros):</Text>
+          <Text style={styles.totalPatrimonioValue}>
+            {currencySymbol}
+            {((summary?.totalIncome || 0) - (summary?.totalExpense || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </Text>
+        </View>
 
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
@@ -279,18 +300,65 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#334155',
   },
+  balanceHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  totalSavingsBadge: {
+    backgroundColor: '#38BDF815',
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    alignItems: 'flex-end',
+  },
+  totalSavingsBadgeLabel: {
+    color: '#38BDF8',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  totalSavingsBadgeValue: {
+    color: '#38BDF8',
+    fontSize: 14,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  totalPatrimonioBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#0F172A80',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  totalPatrimonioLabel: {
+    color: '#CBD5E1',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  totalPatrimonioValue: {
+    color: '#38BDF8',
+    fontSize: 14,
+    fontWeight: '800',
+  },
   summaryLabel: {
     color: '#94A3B8',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   balanceValue: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '800',
-    marginTop: 4,
-    marginBottom: 16,
+    marginTop: 2,
+    marginBottom: 10,
   },
   positiveText: {
     color: '#F8FAFC',
