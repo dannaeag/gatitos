@@ -129,18 +129,18 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
   const spentRatio = isBudgetActive ? totalExpense / monthlyLimit : 0;
   const progressPct = isBudgetActive ? Math.min(Math.round(spentRatio * 100), 100) : 0;
 
-  // Glow color tied to financial state
+  // Glow color tied to financial state (El ahorro NO afecta el estado/brillo del gato)
   let glowColor = '#38BDF8'; // default: cyan / neutro
   if (!isBudgetActive) {
-    if (balance < 0) glowColor = '#F43F5E';       // Rojo (Números rojos)
-    else if (balance === 0) glowColor = '#38BDF8'; // Cyan (Neutro 0)
-    else if (balance > 1000) glowColor = '#10B981';// Verde Esmeralda (Millonario)
+    if (patrimonioTotal < 0) glowColor = '#F43F5E';       // Rojo (Números rojos)
+    else if (patrimonioTotal === 0) glowColor = '#38BDF8'; // Cyan (Neutro 0)
+    else if (patrimonioTotal > 1000) glowColor = '#10B981';// Verde Esmeralda (Millonario)
     else glowColor = '#22C55E';                    // Verde Lima (Positivo)
   } else {
-    if (balance < 0 || spentRatio >= 0.95) glowColor = '#F43F5E';        // Rojo (Apretado / Sobregiro)
+    if (patrimonioTotal < 0 || spentRatio >= 0.95) glowColor = '#F43F5E';        // Rojo (Apretado / Sobregiro)
     else if (spentRatio >= 0.75) glowColor = '#F59E0B';                 // Ámbar (Cauteloso)
-    else if (balance > 1000 || totalExpense === 0) glowColor = '#10B981';// Verde Esmeralda (Millonario)
-    else if (spentRatio < 0.4 || balance > 300) glowColor = '#22C55E';  // Verde Lima (Satisfecho)
+    else if (patrimonioTotal > 1000 || totalExpense === 0) glowColor = '#10B981';// Verde Esmeralda (Millonario)
+    else if (spentRatio < 0.4 || patrimonioTotal > 300) glowColor = '#22C55E';  // Verde Lima (Satisfecho)
     else glowColor = '#38BDF8';                                         // Cyan (Relajado)
   }
 

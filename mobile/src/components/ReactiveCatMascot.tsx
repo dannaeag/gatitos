@@ -21,6 +21,7 @@ export const ReactiveCatMascot: React.FC<ReactiveCatMascotProps> = ({
   const isBudgetEnabled = monthlyLimit !== null && monthlyLimit !== undefined && monthlyLimit > 0;
   const limit = isBudgetEnabled ? monthlyLimit : 0;
   const spentRatio = isBudgetEnabled && limit > 0 ? totalExpense / limit : 0;
+  // El ahorro NO afecta la animación/estado del gato; se evalúa Ingresos vs Gastos
   const balance = totalIncome - totalExpense;
 
   let state: CatState = 'hugging';
