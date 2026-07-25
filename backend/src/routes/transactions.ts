@@ -114,7 +114,7 @@ transactionsRouter.get('/summary', async (req: Request, res: Response) => {
       totalIncome,
       totalExpense,
       totalSaving,
-      balance: totalIncome - totalExpense,
+      balance: totalIncome - totalExpense - totalSaving,
       monthlyLimit: budget ? budget.monthlyLimit : null,
       budgetProgressPercentage: budget && budget.monthlyLimit > 0 ? (totalExpense / budget.monthlyLimit) * 100 : 0,
       categoryBreakdown,
@@ -135,10 +135,15 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Title, amount, and categoryId are required' });
     }
 
+    const numAmount = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(',', '.'));
+    if (isNaN(numAmount)) {
+      return res.status(400).json({ error: 'Monto inválido' });
+    }
+
     const transaction = await prisma.transaction.create({
       data: {
         title,
-        amount: parseFloat(amount),
+        amount: numAmount,
         categoryId,
         date: date ? new Date(date) : new Date(),
         type: type || 'EXPENSE',
@@ -166,11 +171,19 @@ transactionsRouter.put('/:id', async (req: Request, res: Response) => {
     const id = req.params.id as string;
     const { title, amount, categoryId, date, type, paymentMethod, notes, isRecurring, recurrenceFrequency, billingDate } = req.body;
 
+    let numAmount: number | undefined = undefined;
+    if (amount !== undefined) {
+      numAmount = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(',', '.'));
+      if (isNaN(numAmount)) {
+        return res.status(400).json({ error: 'Monto inválido' });
+      }
+    }
+
     const transaction = await prisma.transaction.update({
       where: { id },
       data: {
         title,
-        amount: amount !== undefined ? parseFloat(amount) : undefined,
+        amount: numAmount,
         categoryId,
         date: date ? new Date(date) : undefined,
         type,

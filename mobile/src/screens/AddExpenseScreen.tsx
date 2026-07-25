@@ -95,7 +95,9 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
+    const cleanAmountStr = amount.replace(',', '.');
+    const parsedAmount = parseFloat(cleanAmountStr);
+    if (!cleanAmountStr || isNaN(parsedAmount) || parsedAmount <= 0) {
       showAlert('Error', 'Por favor ingresa un monto válido');
       return;
     }
@@ -113,7 +115,7 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
     if (isEditing && editingTransaction) {
       await updateTransaction(editingTransaction.id, {
         title: title.trim(),
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         categoryId: selectedCategoryId,
         type,
         paymentMethod,
@@ -125,7 +127,7 @@ export const AddExpenseScreen: React.FC<AddExpenseScreenProps> = ({
     } else {
       await createTransaction({
         title: title.trim(),
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         categoryId: selectedCategoryId,
         type,
         paymentMethod,
