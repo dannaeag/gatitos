@@ -36,6 +36,7 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [tempBudgetInput, setTempBudgetInput] = useState('0');
   const [showSquadModal, setShowSquadModal] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
 
   // Glow pulse animation
   const glowPulse     = useRef(new Animated.Value(0.55)).current;
@@ -65,12 +66,16 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
   }, []);
 
   useEffect(() => {
-    fetchTransactions().then(setTransactions);
     const now = new Date();
-    fetchBudget(now.getMonth() + 1, now.getFullYear()).then((limit) => {
+    Promise.all([
+      fetchTransactions(),
+      fetchBudget(now.getMonth() + 1, now.getFullYear()),
+    ]).then(([txs, limit]) => {
+      setTransactions(txs);
       const validLimit = limit && limit > 0 ? limit : 0;
       setMonthlyLimit(validLimit);
       setTempBudgetInput(validLimit.toString());
+      setLoadingData(false);
     });
 
     // Soft breathing glow opacity
@@ -209,15 +214,17 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
           <View style={[styles.sparkle, { bottom: '15%', left: '5%', backgroundColor: glowColor, width: 12, height: 12, borderRadius: 6 }]} />
         </Animated.View>
 
-        {/* The actual cat mascot */}
+        {/* The actual cat mascot - Hide image while loading data */}
         <View style={[styles.catCenter, { width: catSize, height: catSize }]}>
-          <ReactiveCatMascot
-            totalExpense={totalExpense}
-            totalIncome={totalIncome}
-            monthlyLimit={monthlyLimit}
-            size={catSize}
-            standalone={true}
-          />
+          {!loadingData && (
+            <ReactiveCatMascot
+              totalExpense={totalExpense}
+              totalIncome={totalIncome}
+              monthlyLimit={monthlyLimit}
+              size={catSize}
+              standalone={true}
+            />
+          )}
         </View>
       </View>
 
