@@ -34,7 +34,27 @@ const LOCAL_CATEGORIES: Category[] = [
   { id: 'cat-13', name: 'Ahorro Michi Cerdito', icon: 'award', color: '#EC4899', type: 'SAVING' },
 ];
 
-let LOCAL_TRANSACTIONS: Transaction[] = [];
+function loadLocalTransactionsFromStorage(): Transaction[] {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const saved = window.localStorage.getItem('michi_local_transactions');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {}
+  }
+  return [];
+}
+
+function saveLocalTransactionsToStorage(txs: Transaction[]) {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      window.localStorage.setItem('michi_local_transactions', JSON.stringify(txs));
+    } catch (e) {}
+  }
+}
+
+let LOCAL_TRANSACTIONS: Transaction[] = loadLocalTransactionsFromStorage();
 
 let LOCAL_BUDGET_LIMIT = 1500;
 
@@ -55,7 +75,12 @@ export async function fetchTransactions(month?: number, year?: number): Promise<
     const query = month && year ? `?month=${month}&year=${year}` : '';
     const res = await fetch(`${API_BASE_URL}/transactions${query}`, { signal: AbortSignal.timeout(3000) });
     if (res.ok) {
-      return await res.json();
+      const serverTxs = await res.json();
+      if (Array.isArray(serverTxs)) {
+        LOCAL_TRANSACTIONS = serverTxs;
+        saveLocalTransactionsToStorage(serverTxs);
+        return serverTxs;
+      }
     }
   } catch (e) {
     console.log('Using local fallback for transactions');
@@ -90,7 +115,10 @@ export async function createTransaction(data: {
       signal: AbortSignal.timeout(3000),
     });
     if (res.ok) {
-      return await res.json();
+      const created = await res.json();
+      LOCAL_TRANSACTIONS.unshift(created);
+      saveLocalTransactionsToStorage(LOCAL_TRANSACTIONS);
+      return created;
     }
   } catch (e) {
     console.log('Using local fallback for creating transaction');
@@ -113,6 +141,7 @@ export async function createTransaction(data: {
   };
 
   LOCAL_TRANSACTIONS.unshift(newTx);
+  saveLocalTransactionsToStorage(LOCAL_TRANSACTIONS);
   return newTx;
 }
 
@@ -139,7 +168,15 @@ export async function updateTransaction(
       signal: AbortSignal.timeout(3000),
     });
     if (res.ok) {
-      return await res.json();
+      const updated = await res.json();
+      const idx = LOCAL_TRANSACTIONS.findIndex((t) => t.id === id);
+      if (idx !== -1) {
+        LOCAL_TRANSACTIONS[idx] = updated;
+      } else {
+        LOCAL_TRANSACTIONS.unshift(updated);
+      }
+      saveLocalTransactionsToStorage(LOCAL_TRANSACTIONS);
+      return updated;
     }
   } catch (e) {
     console.log('Using local fallback for updating transaction');
@@ -162,6 +199,7 @@ export async function updateTransaction(
       recurrenceFrequency: data.recurrenceFrequency,
       billingDate: data.billingDate,
     };
+    saveLocalTransactionsToStorage(LOCAL_TRANSACTIONS);
     return LOCAL_TRANSACTIONS[index];
   }
   throw new Error('Transaction not found');
@@ -173,12 +211,17 @@ export async function deleteTransaction(id: string): Promise<boolean> {
       method: 'DELETE',
       signal: AbortSignal.timeout(3000),
     });
-    if (res.ok) return true;
+    if (res.ok) {
+      LOCAL_TRANSACTIONS = LOCAL_TRANSACTIONS.filter((tx) => tx.id !== id);
+      saveLocalTransactionsToStorage(LOCAL_TRANSACTIONS);
+      return true;
+    }
   } catch (e) {
     console.log('Using local fallback for deleting transaction');
   }
 
   LOCAL_TRANSACTIONS = LOCAL_TRANSACTIONS.filter((tx) => tx.id !== id);
+  saveLocalTransactionsToStorage(LOCAL_TRANSACTIONS);
   return true;
 }
 
