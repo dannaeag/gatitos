@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Transaction } from '../types';
 import { CategoryIcon } from './CategoryIcon';
 import { Trash2 } from './Icons';
+import { TransactionReceiptModal } from './TransactionReceiptModal';
 
 interface ExpenseCardProps {
   transaction: Transaction;
@@ -17,11 +18,20 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const [showReceipt, setShowReceipt] = useState(false);
+
   const isIncome = transaction.type === 'INCOME';
   const isSaving = transaction.type === 'SAVING';
-  const formattedDate = new Date(transaction.date).toLocaleDateString('es-ES', {
+
+  const txDate = new Date(transaction.date);
+  const formattedDate = txDate.toLocaleDateString('es-ES', {
     day: '2-digit',
     month: 'short',
+    year: 'numeric',
+  });
+  const formattedTime = txDate.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
   });
 
   const freqLabels: Record<string, string> = {
@@ -33,72 +43,97 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
   };
 
   return (
-    <View style={styles.card}>
-      <View style={styles.leftSection}>
-        <View style={styles.iconWrapper}>
-          <CategoryIcon
-            name={transaction.category?.icon || 'bag'}
-            color={transaction.category?.color || '#64748B'}
-            size={18}
-          />
-          <Text style={styles.catBadge}>{isSaving ? '🐷' : isIncome ? '🐱' : '🐾'}</Text>
-        </View>
-
-        <View style={styles.details}>
-          <Text style={styles.title} numberOfLines={1}>
-            {transaction.title}
-          </Text>
-          <View style={styles.subDetails}>
-            <Text style={styles.categoryName}>
-              {transaction.category?.name || 'General'}
-            </Text>
-            <Text style={styles.dot}>•</Text>
-            <Text style={styles.date}>{formattedDate}</Text>
+    <>
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.8}
+        onPress={() => setShowReceipt(true)}
+      >
+        <View style={styles.leftSection}>
+          <View style={styles.iconWrapper}>
+            <CategoryIcon
+              name={transaction.category?.icon || 'bag'}
+              color={transaction.category?.color || '#64748B'}
+              size={18}
+            />
+            <Text style={styles.catBadge}>{isSaving ? '🐷' : isIncome ? '🐱' : '🐾'}</Text>
           </View>
 
-          {transaction.isRecurring && (
-            <Text style={styles.recurringTag}>
-              🔁 Recurrente ({freqLabels[transaction.recurrenceFrequency || 'MONTHLY'] || 'Mensual'})
-              {transaction.billingDate ? ` • Cobro: ${transaction.billingDate}` : ''}
+          <View style={styles.details}>
+            <Text style={styles.title} numberOfLines={1}>
+              {transaction.title}
             </Text>
-          )}
+            <View style={styles.subDetails}>
+              <Text style={styles.categoryName}>
+                {transaction.category?.name || 'General'}
+              </Text>
+              <Text style={styles.dot}>•</Text>
+              <Text style={styles.date}>{formattedDate} {formattedTime}</Text>
+            </View>
 
-          {transaction.notes ? (
-            <Text style={styles.notesText} numberOfLines={1}>
-              💬 {transaction.notes}
-            </Text>
-          ) : null}
+            {transaction.isRecurring && (
+              <Text style={styles.recurringTag}>
+                🔁 Recurrente ({freqLabels[transaction.recurrenceFrequency || 'MONTHLY'] || 'Mensual'})
+                {transaction.billingDate ? ` • Cobro: ${transaction.billingDate}` : ''}
+              </Text>
+            )}
+
+            {transaction.notes ? (
+              <Text style={styles.notesText} numberOfLines={1}>
+                💬 {transaction.notes}
+              </Text>
+            ) : null}
+          </View>
         </View>
-      </View>
 
-      <View style={styles.rightSection}>
-        <Text style={[styles.amount, isSaving ? styles.savingText : isIncome ? styles.incomeText : styles.expenseText]}>
-          {isSaving ? '🐷 +' : isIncome ? '+' : '-'}{currencySymbol}
-          {transaction.amount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </Text>
+        <View style={styles.rightSection}>
+          <Text style={[styles.amount, isSaving ? styles.savingText : isIncome ? styles.incomeText : styles.expenseText]}>
+            {isSaving ? '🐷 +' : isIncome ? '+' : '-'}{currencySymbol}
+            {transaction.amount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </Text>
 
-        <View style={styles.actionsRow}>
-          {onEdit && (
+          <View style={styles.actionsRow}>
+            {/* View Receipt Button */}
             <TouchableOpacity
               style={styles.actionBtn}
-              onPress={() => onEdit(transaction)}
+              onPress={() => setShowReceipt(true)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={styles.actionEmoji}>✏️</Text>
+              <Text style={styles.actionEmoji}>🧾</Text>
             </TouchableOpacity>
-          )}
-          {onDelete && (
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={() => onDelete(transaction.id)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Trash2 size={16} color="#F43F5E" />
-            </TouchableOpacity>
-          )}
+
+            {onEdit && (
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => onEdit(transaction)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.actionEmoji}>✏️</Text>
+              </TouchableOpacity>
+            )}
+
+            {onDelete && (
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => onDelete(transaction.id)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Trash2 size={16} color="#F43F5E" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
-    </View>
+      </TouchableOpacity>
+
+      {/* Modal Boleta / Comprobante */}
+      <TransactionReceiptModal
+        transaction={transaction}
+        currencySymbol={currencySymbol}
+        visible={showReceipt}
+        onClose={() => setShowReceipt(false)}
+        onEdit={onEdit}
+      />
+    </>
   );
 };
 
