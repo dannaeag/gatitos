@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Modal,
 } from 'react-native';
 import { fetchTransactions, fetchBudget, saveBudget } from '../api';
 import { ReactiveCatMascot } from '../components/ReactiveCatMascot';
@@ -34,6 +35,7 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
   const [monthlyLimit, setMonthlyLimit] = useState<number>(0); // 0 = Desactivado por defecto
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [tempBudgetInput, setTempBudgetInput] = useState('0');
+  const [showSquadModal, setShowSquadModal] = useState(false);
 
   // Glow pulse animation
   const glowPulse     = useRef(new Animated.Value(0.55)).current;
@@ -125,6 +127,12 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {/* Botón superior derecho para abrir Escuadrón & Racha */}
+      <View style={styles.topRightBar}>
+        <TouchableOpacity style={styles.squadLauncherBtn} onPress={() => setShowSquadModal(true)}>
+          <Text style={styles.squadLauncherText}>🔥 Escuadrón & Racha</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Cat + Glow effects container */}
       <View style={[styles.catScene, { width: glowSize, height: glowSize }]}>
@@ -180,9 +188,6 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
           />
         </View>
       </View>
-
-      {/* Racha y Escuadrón Michi */}
-      <MichiClanStreak transactions={transactions} />
 
       {/* Card de BALANCE TOTAL y PRESUPUESTO OPCIONAL */}
       <View style={styles.balanceCard}>
@@ -249,6 +254,33 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
           )}
         </View>
       </View>
+
+      {/* Popup Modal con Escuadrón & Racha Completo */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showSquadModal}
+        onRequestClose={() => setShowSquadModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>🏆 Escuadrón & Racha Michi</Text>
+              <TouchableOpacity onPress={() => setShowSquadModal(false)} style={styles.modalCloseBtn}>
+                <Text style={styles.modalCloseBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ width: '100%' }} contentContainerStyle={{ paddingBottom: 20 }}>
+              <MichiClanStreak transactions={transactions} />
+            </ScrollView>
+
+            <TouchableOpacity style={styles.modalFooterCloseBtn} onPress={() => setShowSquadModal(false)}>
+              <Text style={styles.modalFooterCloseText}>¡Volver a la Vista Principal! 🐾</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -420,5 +452,84 @@ const styles = StyleSheet.create({
   cancelBudgetBtnText: {
     color: '#94A3B8',
     fontSize: 14,
+  },
+  topRightBar: {
+    width: '100%',
+    maxWidth: 500,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+  },
+  squadLauncherBtn: {
+    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+    borderColor: '#38BDF8',
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#38BDF8',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  squadLauncherText: {
+    color: '#38BDF8',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 520,
+    maxHeight: '90%',
+    backgroundColor: '#0F172A',
+    borderRadius: 24,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.4)',
+    alignItems: 'center',
+  },
+  modalHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalHeaderTitle: {
+    color: '#F8FAFC',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  modalCloseBtn: {
+    padding: 6,
+  },
+  modalCloseBtnText: {
+    color: '#94A3B8',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  modalFooterCloseBtn: {
+    width: '100%',
+    backgroundColor: '#38BDF8',
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  modalFooterCloseText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
   },
 });
