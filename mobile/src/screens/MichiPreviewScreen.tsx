@@ -245,16 +245,6 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
           </Text>
         </View>
 
-        {/* Fila Adicional: Patrimonio Total (Disponible + Ahorros) */}
-        <View style={styles.patrimonioBreakdownRow}>
-          <Text style={styles.patrimonioBreakdownLabel}>
-            💎 Patrimonio Total (Disponible + Ahorro):
-          </Text>
-          <Text style={styles.patrimonioBreakdownValue}>
-            {currencySymbol}{patrimonioTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
-          </Text>
-        </View>
-
         {/* Sección de Presupuesto Opcional */}
         <View style={styles.budgetProgressSection}>
           {isBudgetActive && (

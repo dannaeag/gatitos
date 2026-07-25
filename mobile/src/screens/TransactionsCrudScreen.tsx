@@ -199,14 +199,6 @@ export const TransactionsCrudScreen: React.FC<TransactionsCrudScreenProps> = ({
             </View>
           </View>
 
-          {/* Patrimonio Total Banner Row */}
-          <View style={styles.patrimonioRowBanner}>
-            <Text style={styles.patrimonioRowLabel}>💎 Patrimonio Total (Disponible + Ahorro):</Text>
-            <Text style={styles.patrimonioRowValue}>
-              {currencySymbol}{patrimonioTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
-            </Text>
-          </View>
-
           {/* Search & Type Filter Bar */}
           <View style={styles.filterSection}>
             <View style={styles.searchBox}>

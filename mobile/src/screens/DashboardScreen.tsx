@@ -146,15 +146,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             {(summary?.totalSaving || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </Text>
         </View>
-
-        {/* Fila Adicional: Patrimonio Total (Disponible + Ahorros) */}
-        <View style={styles.totalPatrimonioBanner}>
-          <Text style={styles.totalPatrimonioLabel}>💎 Patrimonio Total (Disponible + Ahorro):</Text>
-          <Text style={styles.totalPatrimonioValue}>
-            {currencySymbol}
-            {((summary?.totalIncome || 0) - (summary?.totalExpense || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </Text>
-        </View>
       </View>
 
       {/* Monthly Budget Progress Card */}
