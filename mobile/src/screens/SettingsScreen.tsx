@@ -34,19 +34,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const handleSaveApiUrl = async () => {
     setApiBaseUrl(apiUrl);
+    const activeUrl = getApiBaseUrl();
+    setApiUrlState(activeUrl);
     setTestingConnection(true);
     setConnectionStatus(null);
 
     try {
-      const res = await fetch(`${apiUrl}/health`, { signal: AbortSignal.timeout(4000) });
+      // Try /health endpoint on active normalized URL
+      let res = await fetch(`${activeUrl}/health`, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) {
+        // Fallback to testing base host
+        const baseUrl = activeUrl.replace(/\/api$/, '');
+        res = await fetch(`${baseUrl}/health`, { signal: AbortSignal.timeout(4000) });
+      }
+
       if (res.ok) {
         const data = await res.json();
-        setConnectionStatus(`✅ Conectado exitosamente con Render API (${data.service})`);
+        setConnectionStatus(`✅ Conectado exitosamente con Render API (${data.service || 'ok'})`);
       } else {
         setConnectionStatus('⚠️ El servidor respondió pero devolvió un estado no OK');
       }
     } catch (e) {
-      setConnectionStatus('⚡ Modo local / offline activo. (Configura la URL de tu backend en Render al desplegar)');
+      setConnectionStatus('⚡ Modo local / offline activo. (Verifica la URL de tu backend en Render)');
     } finally {
       setTestingConnection(false);
     }

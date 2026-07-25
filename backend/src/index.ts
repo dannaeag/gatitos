@@ -14,6 +14,15 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Root route for Render ping and health check
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'radiant-volta-backend' });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'radiant-volta-backend' });
+});
+
 // Health Check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'radiant-volta-backend' });

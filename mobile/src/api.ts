@@ -3,7 +3,14 @@ import { Transaction, Category, MonthlySummary, TransactionType, PaymentMethod }
 let API_BASE_URL = 'http://localhost:3001/api';
 
 export function setApiBaseUrl(url: string) {
-  API_BASE_URL = url.endsWith('/') ? url.slice(0, -1) : url;
+  let cleaned = url.trim();
+  if (cleaned.endsWith('/')) {
+    cleaned = cleaned.slice(0, -1);
+  }
+  if (!cleaned.endsWith('/api')) {
+    cleaned += '/api';
+  }
+  API_BASE_URL = cleaned;
 }
 
 export function getApiBaseUrl() {
