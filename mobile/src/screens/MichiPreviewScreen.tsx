@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { fetchTransactions, fetchBudget, saveBudget } from '../api';
 import { ReactiveCatMascot } from '../components/ReactiveCatMascot';
+import { MichiClanStreak } from '../components/MichiClanStreak';
 import { Transaction } from '../types';
 
 interface MichiPreviewScreenProps {
@@ -179,6 +180,9 @@ export const MichiPreviewScreen: React.FC<MichiPreviewScreenProps> = ({ currency
           />
         </View>
       </View>
+
+      {/* Racha y Escuadrón Michi */}
+      <MichiClanStreak transactions={transactions} />
 
       {/* Card de BALANCE TOTAL y PRESUPUESTO OPCIONAL */}
       <View style={styles.balanceCard}>
