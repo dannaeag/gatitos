@@ -93,31 +93,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       <View style={styles.summaryCard}>
         <View style={styles.balanceHeaderRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.summaryLabel}>Balance Disponible (Libre)</Text>
+            <Text style={styles.summaryLabel}>Balance Libre Disponible</Text>
             <Text style={[styles.balanceValue, (summary?.balance || 0) < 0 ? styles.negativeText : styles.positiveText]}>
               {currencySymbol}
               {(summary?.balance || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
           </View>
-
-          <View style={styles.totalSavingsBadge}>
-            <Text style={styles.totalSavingsBadgeLabel}>🐷 Ahorrado este Mes</Text>
-            <Text style={styles.totalSavingsBadgeValue}>
-              +{currencySymbol}
-              {(summary?.totalSaving || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Text>
-          </View>
         </View>
 
-        {/* Total Net Balance (Ingresos - Gastos) representing Total Money including Savings */}
-        <View style={styles.totalPatrimonioBanner}>
-          <Text style={styles.totalPatrimonioLabel}>💎 Balance Total (Disponible + Ahorros):</Text>
-          <Text style={styles.totalPatrimonioValue}>
-            {currencySymbol}
-            {((summary?.totalIncome || 0) - (summary?.totalExpense || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </Text>
-        </View>
-
+        {/* Fila 1: Ingresos y Gastos */}
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <View style={[styles.iconCircle, { backgroundColor: '#10B98120' }]}>
@@ -144,25 +128,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               </Text>
             </View>
           </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.statBox}>
-            <View style={[styles.iconCircle, { backgroundColor: '#38BDF820' }]}>
-              <Text style={{ fontSize: 14 }}>🐷</Text>
-            </View>
-            <View>
-              <Text style={styles.statLabel}>Ahorros</Text>
-              <Text style={styles.statValueSaving}>
-                {currencySymbol}{(summary?.totalSaving || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
-              </Text>
-            </View>
-          </View>
         </View>
 
-        <Text style={styles.savingExplanationNote}>
-          ℹ️ El Ahorro se separa de lo disponible como un traspaso del ingreso (no es un gasto).
-        </Text>
+        {/* Fila Adicional Dedicada: Ahorro Acumulado */}
+        <View style={styles.savingRowDedicated}>
+          <View style={styles.savingRowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: '#38BDF820' }]}>
+              <Text style={{ fontSize: 16 }}>🐷</Text>
+            </View>
+            <View>
+              <Text style={styles.savingRowTitle}>Reserva Total Ahorrada</Text>
+              <Text style={styles.savingRowSubtitle}>Traspaso apartado del ingreso</Text>
+            </View>
+          </View>
+          <Text style={styles.savingRowAmount}>
+            +{currencySymbol}
+            {(summary?.totalSaving || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </Text>
+        </View>
+
+        {/* Fila Adicional: Patrimonio Total (Disponible + Ahorros) */}
+        <View style={styles.totalPatrimonioBanner}>
+          <Text style={styles.totalPatrimonioLabel}>💎 Patrimonio Total (Disponible + Ahorro):</Text>
+          <Text style={styles.totalPatrimonioValue}>
+            {currencySymbol}
+            {((summary?.totalIncome || 0) - (summary?.totalExpense || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </Text>
+        </View>
       </View>
 
       {/* Monthly Budget Progress Card */}
@@ -325,15 +317,44 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginTop: 2,
   },
+  savingRowDedicated: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#0F172A',
+    borderRadius: 16,
+    padding: 12,
+    marginTop: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#38BDF840',
+  },
+  savingRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  savingRowTitle: {
+    color: '#F8FAFC',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  savingRowSubtitle: {
+    color: '#94A3B8',
+    fontSize: 11,
+  },
+  savingRowAmount: {
+    color: '#38BDF8',
+    fontSize: 16,
+    fontWeight: '800',
+  },
   totalPatrimonioBanner: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#0F172A80',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 14,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: '#334155',
   },
