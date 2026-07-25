@@ -1,6 +1,6 @@
 import { Transaction, Category, MonthlySummary, TransactionType, PaymentMethod } from './types';
 
-let API_BASE_URL = 'http://localhost:3001/api';
+let API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://radiant-volta-api.onrender.com/api';
 
 export function setApiBaseUrl(url: string) {
   let cleaned = url.trim();
